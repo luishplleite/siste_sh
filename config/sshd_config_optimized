@@ -1,0 +1,80 @@
+# SSHPLUS - Configuração Otimizada do SSH
+# Baseado no Relatório Técnico de Melhorias - Fase 1
+#
+# Este arquivo deve SUBSTITUIR ou ser mesclado com /etc/ssh/sshd_config
+# em um ambiente VPS/servidor dedicado
+
+# ========================================
+# COMPRESSÃO E PERFORMANCE
+# ========================================
+# Ativa compressão após autenticação (reduz banda, aumenta throughput)
+Compression delayed
+
+# ========================================
+# ALGORITMOS MODERNOS E RÁPIDOS
+# ========================================
+# Ciphers otimizados (ChaCha20 é muito rápido em CPUs modernas)
+Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+
+# MACs otimizados (ETM = Encrypt-Then-Mac, mais seguro e rápido)
+MACs hmac-sha2-512-etm@openssh.com,hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com
+
+# Key Exchange algorithms rápidos
+KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group-exchange-sha256
+
+# ========================================
+# KEEP-ALIVE E TIMEOUT
+# ========================================
+# Mantém conexões ativas e detecta clientes mortos
+TCPKeepAlive yes
+ClientAliveInterval 30
+ClientAliveCountMax 6
+
+# ========================================
+# MULTIPLEXAÇÃO (CLIENTE)
+# ========================================
+# Para habilitar no CLIENTE, adicione em ~/.ssh/config:
+#
+# Host *
+#     ControlMaster auto
+#     ControlPath ~/.ssh/sockets/%r@%h-%p
+#     ControlPersist 10m
+#     Compression yes
+#
+# Isso reduz latência de novas conexões em 80-95%
+
+# ========================================
+# OUTRAS OTIMIZAÇÕES
+# ========================================
+# Aumenta número de conexões simultâneas
+MaxStartups 100:30:200
+
+# Login grace time
+LoginGraceTime 30
+
+# Configurações de segurança mantidas
+PermitRootLogin yes
+PubkeyAuthentication yes
+PasswordAuthentication yes
+PermitEmptyPasswords no
+
+# Desabilita métodos lentos
+UseDNS no
+GSSAPIAuthentication no
+
+# ========================================
+# APLICAÇÃO
+# ========================================
+# 1. Backup do arquivo original:
+#    sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
+#
+# 2. Copiar estas configurações:
+#    sudo cp config/sshd_config_optimized /etc/ssh/sshd_config
+#
+# 3. Verificar sintaxe:
+#    sudo sshd -t
+#
+# 4. Reiniciar SSH:
+#    sudo systemctl restart sshd
+#    ou
+#    sudo service ssh restart
